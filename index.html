@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Swasth AI</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b7a75">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f1f7f7;
+      color:#172020;
+    }
+
+    header{
+      background:#0b7a75;
+      color:white;
+      padding:18px;
+      text-align:center;
+      position:sticky;
+      top:0;
+      z-index:5;
+    }
+
+    header h1{
+      margin:0;
+      font-size:25px;
+    }
+
+    header p{
+      margin:5px 0 0;
+      opacity:.9;
+    }
+
+    .app{
+      max-width:700px;
+      margin:auto;
+      padding:15px;
+    }
+
+    .chat{
+      background:white;
+      min-height:65vh;
+      border-radius:20px;
+      padding:15px;
+      box-shadow:0 5px 20px #d5dddd;
+      overflow-y:auto;
+    }
+
+    .message{
+      max-width:88%;
+      padding:13px 15px;
+      margin:10px 0;
+      border-radius:17px;
+      line-height:1.6;
+      word-wrap:break-word;
+    }
+
+    .ai{
+      background:#e9f5f4;
+      margin-right:auto;
+    }
+
+    .user{
+      background:#0b7a75;
+      color:white;
+      margin-left:auto;
+    }
+
+    .input-area{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    input{
+      flex:1;
+      padding:14px;
+      border:1px solid #cbd5d5;
+      border-radius:14px;
+      font-size:16px;
+      outline:none;
+    }
+
+    button{
+      border:0;
+      border-radius:14px;
+      padding:0 17px;
+      background:#0b7a75;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+    }
+
+    .install{
+      display:none;
+      width:100%;
+      padding:13px;
+      margin-top:10px;
+      background:#ff8c00;
+    }
+
+    .warning{
+      background:#fff3cd;
+      padding:12px;
+      border-radius:12px;
+      margin-top:10px;
+    }
+
+    .chips{
+      display:flex;
+      gap:7px;
+      overflow-x:auto;
+      margin:10px 0;
+    }
+
+    .chip{
+      white-space:nowrap;
+      background:white;
+      color:#0b7a75;
+      border:1px solid #0b7a75;
+      padding:8px 12px;
+      border-radius:20px;
+      cursor:pointer;
+    }
+
+    footer{
+      text-align:center;
+      padding:15px;
+      color:#667;
+      font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🩺 Swasth AI</h1>
+  <p>Hindi • English • Bhojpuri</p>
+</header>
+
+<div class="app">
+
+  <button id="installBtn" class="install">
+    📲 App Install Karein
+  </button>
+
+  <div class="chips">
+    <button class="chip" onclick="quick('Mere sir me dard hai')">
+      🤕 Headache
+    </button>
+
+    <button class="chip" onclick="quick('Mujhe bukhar hai')">
+      🌡️ Fever
+    </button>
+
+    <button class="chip" onclick="quick('Mujhe khansi ho rahi hai')">
+      😷 Cough
+    </button>
+
+    <button class="chip" onclick="quick('Pet me dard hai')">
+      🤢 Stomach
+    </button>
+  </div>
+
+  <div id="chat" class="chat">
+
+    <div class="message ai">
+      👋 <b>Namaste!</b><br><br>
+
+      Main Swasth AI hoon. Aap mujhse
+      Hindi, English ya Bhojpuri me health
+      related question pooch sakte hain.
+
+      <br><br>
+
+      Example:
+      <br>• "Mere sir me dard hai"
+      <br>• "What causes cough?"
+      <br>• "Pet me dard ka kaaran ka ho sakela?"
+    </div>
+
+  </div>
+
+  <div class="input-area">
+
+    <input
+      id="question"
+      placeholder="Apni problem likhiye..."
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')sendMessage()"
+    >
+
+    <button onclick="sendMessage()">Send</button>
+
+  </div>
+
+</div>
+
+<footer>
+  ⚠️ Ye general educational information hai.
+  Diagnosis ya prescription nahi.
+</footer>
+
+
+<script>
+
+const knowledge = [
+
+  {
+    keys:[
+      "headache","head pain","sir dard",
+      "सिर दर्द","sar dard","सर दर्द"
+    ],
+
+    answer:`
+      <b>🤕 Headache / सिर दर्द</b><br><br>
+
+      <b>Possible reasons:</b>
+      <ul>
+        <li>नींद की कमी</li>
+        <li>पानी की कमी</li>
+        <li>तनाव</li>
+        <li>लंबे समय तक screen देखना</li>
+        <li>सर्दी-जुकाम</li>
+      </ul>
+
+      <b>Basic care:</b>
+      <ul>
+        <li>पानी पिएं</li>
+        <li>आराम करें</li>
+        <li>Screen से break लें</li>
+        <li>पूरी नींद लेने की कोशिश करें</li>
+      </ul>
+
+      <div class="warning">
+        ⚠️ बहुत तेज या बार-बार सिर दर्द हो तो
+        healthcare professional से सलाह लें।
+      </div>
+    `
+  },
+
+  {
+    keys:[
+      "fever","bukhar","बुखार",
+      "temperature","ताप"
+    ],
+
+    answer:`
+      <b>🌡️ Fever / बुखार</b><br><br>
+
+      बुखार कई infections या दूसरी
+      conditions के कारण हो सकता है।
+
+      <br><br>
+
+      <b>Basic care:</b>
+      <ul>
+        <li>आराम करें</li>
+        <li>पानी और fluids लेते रहें</li>
+        <li>हल्के कपड़े पहनें</li>
+      </ul>
+
+      <div class="warning">
+        ⚠️ बहुत ज्यादा या लगातार बुखार हो,
+        या हालत खराब लगे, तो डॉक्टर से संपर्क करें।
+      </div>
+    `
+  },
+
+  {
+    keys:[
+      "cough","khansi","खांसी",
+      "खाँसी"
+    ],
+
+    answer:`
+      <b>😷 Cough / खांसी</b><br><br>
+
+      <b>Possible reasons:</b>
+      <ul>
+        <li>सर्दी-जुकाम</li>
+        <li>Viral infection</li>
+        <li>Allergy</li>
+        <li>गले में irritation</li>
+      </ul>
+
+      <b>Basic care:</b>
+      <ul>
+        <li>Fluids लें</li>
+        <li>धूल और धुएं से बचें</li>
+        <li>आराम करें</li>
+      </ul>
+
+      ⚠️ सांस लेने में परेशानी हो तो
+      तुरंत medical help लें।
+    `
+  },
+
+  {
+    keys:[
+      "stomach pain","pet dard",
+      "पेट दर्द","pet me dard",
+      "पेट में दर्द"
+    ],
+
+    answer:`
+      <b>🤢 Stomach Pain / पेट दर्द</b><br><br>
+
+      <b>Possible reasons:</b>
+      <ul>
+        <li>Gas</li>
+        <li>Indigestion</li>
+        <li>कब्ज</li>
+        <li>Food infection</li>
+        <li>अन्य digestive problems</li>
+      </ul>
+
+      <b>Basic care:</b>
+      <ul>
+        <li>हल्का भोजन करें</li>
+        <li>पानी पर्याप्त लें</li>
+        <li>आराम करें</li>
+      </ul>
+
+      ⚠️ बहुत तेज या लगातार पेट दर्द हो
+      तो medical advice लें।
+    `
+  },
+
+  {
+    keys:[
+      "cold","sardi","सर्दी",
+      "जुकाम","zukam"
+    ],
+
+    answer:`
+      <b>🤧 Cold / जुकाम</b><br><br>
+
+      जुकाम अक्सर viral infection,
+      allergy या irritation से हो सकता है।
+
+      <br><br>
+
+      आराम करें और पर्याप्त fluids लें।
+      धूल और धुएं से बचें।
+
+      <div class="warning">
+        ⚠️ सांस लेने में परेशानी हो तो
+        तुरंत medical help लें।
+      </div>
+    `
+  }
+
+];
+
+
+function normalize(text){
+
+  return text
+    .toLowerCase()
+    .replace(/[?!.,]/g," ")
+    .trim();
+
+}
+
+
+function findAnswer(question){
+
+  const q = normalize(question);
+
+  for(const item of knowledge){
+
+    for(const key of item.keys){
+
+      if(q.includes(key.toLowerCase())){
+        return item.answer;
+      }
+
+    }
+
+  }
+
+  return null;
+}
+
+
+function sendMessage(){
+
+  const input =
+    document.getElementById("question");
+
+  const question =
+    input.value.trim();
+
+  if(!question) return;
+
+  addMessage(
+    escapeHTML(question),
+    "user"
+  );
+
+  input.value="";
+
+  setTimeout(()=>{
+
+    const answer =
+      findAnswer(question);
+
+    if(answer){
+
+      addMessage(answer,"ai");
+
+    }else{
+
+      addMessage(`
+        🤖 Main is question ko abhi
+        identify nahi kar paaya.
+
+        <br><br>
+
+        Aap symptom ko thoda clearly
+        Hindi, English ya Bhojpuri me likh sakte hain.
+
+        <br><br>
+
+        Example:
+        <br>
+        "Mere pet me dard ba"
+        <br>
+        "Why am I coughing?"
+        <br>
+        "Mora sir dukhata"
+
+        <div class="warning">
+          ⚠️ Serious symptoms ya emergency
+          me turant kisi trusted adult aur
+          healthcare professional se help lein.
+        </div>
+      `,"ai");
+
+    }
+
+  },500);
+
+}
+
+
+function addMessage(text,type){
+
+  const chat =
+    document.getElementById("chat");
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "message " + type;
+
+  div.innerHTML=text;
+
+  chat.appendChild(div);
+
+  chat.scrollTop =
+    chat.scrollHeight;
+}
+
+
+function quick(text){
+
+  document.getElementById("question").value=text;
+
+  sendMessage();
+
+}
+
+
+function escapeHTML(text){
+
+  return text
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* Chrome PWA Install */
+
+let deferredPrompt;
+
+window.addEventListener(
+  "beforeinstallprompt",
+  (event)=>{
+
+    event.preventDefault();
+
+    deferredPrompt=event;
+
+    document.getElementById(
+      "installBtn"
+    ).style.display="block";
+
+  }
+);
+
+
+document.getElementById(
+  "installBtn"
+).addEventListener(
+  "click",
+  async()=>{
+
+    if(!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    deferredPrompt=null;
+
+    document.getElementById(
+      "installBtn"
+    ).style.display="none";
+
+  }
+);
+
+
+/* Service Worker */
+
+if("serviceWorker" in navigator){
+
+  window.addEventListener(
+    "load",
+    ()=>{
+      navigator.serviceWorker.register(
+        "service-worker.js"
+      );
+    }
+  );
+
+}
+
+</script>
+
+</body>
+  </html>
